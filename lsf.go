@@ -3,9 +3,10 @@ package hpc
 import (
 	"bufio"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type LSFJob struct {
@@ -31,8 +32,11 @@ func (j LSFJob) New(job *Job) (error, LSFJob) {
 	var Specs []string
 	if len(job.NativeSpecs) != 0 {
 		//Defines an array of illegal arguments which will not be passed in as native specifications
-		illegalArguments := []string{"-e", "-o", "-eo", " "}
-		Specs = RemoveIllegalParams(job.NativeSpecs, illegalArguments)
+		illegalArguments := []string{"-e", "-o", "-eo"}
+		warnings := job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
+		for i, _ := range warnings {
+			job.PrintWarning(warnings[i])
+		}
 	}
 
 	if len(Specs) != 0 {
@@ -54,7 +58,7 @@ func (j *LSFJob) RunJob() (err error, out string) {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Error creating stdout pipe")
-		j.PrintToParent("Error creating stdout pipe")
+		j.Job.PrintToParent("Error creating stdout pipe")
 		return
 	}
 

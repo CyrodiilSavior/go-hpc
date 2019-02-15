@@ -2,11 +2,12 @@ package hpc
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type SlurmJob struct {
@@ -43,8 +44,8 @@ func (j SlurmJob) New(job *Job) (error, SlurmJob) {
 	var Specs []string
 	if len(job.NativeSpecs) != 0 {
 		//Defines an array of illegal arguments which will not be passed in as native specifications
-		illegalArguments := []string{" "}
-		Specs = RemoveIllegalParams(job.NativeSpecs, illegalArguments)
+		illegalArguments := []string{"-o", "--output"}
+		j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
 	}
 
 	if len(job.NativeSpecs) != 0 {
