@@ -3,7 +3,6 @@ package hpc
 import (
 	"bufio"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/radovskyb/watcher"
 )
@@ -26,6 +27,7 @@ type Job struct {
 	OutputScriptPth string
 	BatchExecution  bool
 	PrintToParent   func(string)
+	PrintWarning    func(string)
 }
 
 type BatchJob interface {
@@ -52,30 +54,18 @@ func Contains(illegalArgs []string, elementToTest string) bool {
 }
 
 //Removes specified arguments
-func RemoveIllegalParams(input []string, illegalParams []string) []string {
-	skip := false
-	var output []string
-	for i, parameter := range input {
-		if skip {
-			skip = false
-			continue
-		}
-		if Contains(illegalParams, parameter) {
-			if !(i+1 > len(input)-1) {
-				if strings.HasPrefix(input[i+1], "-") {
-					skip = false
-					continue
-				}
+func (j *Job) CheckIllegalParams(input []string, illegalParams []string) []string {
+	var warnings []string
+	for i, _ := range input {
+		for k, _ := range illegalParams {
+			if strings.HasPrefix(input[i], illegalParams[k]) {
+				fmt.Println("appending warnings")
+				warnings = append(warnings, fmt.Sprint(input[i], " shouldn't be used. It may cause unwanted results"))
 			}
+		}
 
-			skip = true
-			continue
-		}
-		if parameter != "" {
-			output = append(output, parameter)
-		}
 	}
-	return output
+	return warnings
 }
 
 //Creates a script returns the absolute path

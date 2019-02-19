@@ -3,11 +3,12 @@ package hpc
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type CobaltJob struct {
@@ -60,7 +61,7 @@ func (j CobaltJob) New(job *Job) (error, CobaltJob) {
 	if len(job.NativeSpecs) != 0 {
 		//Defines an array of illegal arguments which will not be passed in as native specifications
 		illegalArguments := []string{"-o", "-e", "--debuglog", " "}
-		Specs = RemoveIllegalParams(job.NativeSpecs, illegalArguments)
+		j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
 	}
 
 	//If native specs were defined attach them to the end. Assemble bash command
