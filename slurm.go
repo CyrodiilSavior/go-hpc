@@ -98,7 +98,7 @@ func (j *SlurmJob) RunJob() (err error, out string) {
 	jobid_int := strconv.Itoa(jobid)
 	cmd = j.Job.setUid([]string{j.exitCodeCmd, "-n", "-p", "-j", jobid_int, "--format=state,exitcode"})
 	ret, err = cmd.Output()
-	if err != nil || ret == "" {
+	if err != nil || string(ret) == "" {
 		log.WithFields(log.Fields{
 			"args":  cmd.Args,
 			"error": err,
