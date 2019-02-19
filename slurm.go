@@ -2,11 +2,12 @@ package hpc
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type SlurmJob struct {
@@ -95,17 +96,18 @@ func (j *SlurmJob) RunJob() (err error, out string) {
 
 	//Build a command to get exit status of the Job
 	jobid_int := strconv.Itoa(jobid)
-	cmd = j.Job.setUid([]string{j.exitCodeCmd, "-p", "-j", jobid_int, "--format=state,exitcode"})
+	cmd = j.Job.setUid([]string{j.exitCodeCmd, "-n", "-p", "-j", jobid_int, "--format=state,exitcode"})
 	ret, err = cmd.Output()
-	if err != nil {
+	if err != nil || ret == "" {
 		log.WithFields(log.Fields{
 			"args":  cmd.Args,
 			"error": err,
 		}).Warn("Failed to get job status")
 		return fmt.Errorf("Cannot get output from sacct", err), ""
 	}
+
 	lines := strings.Split(string(ret), "\n")
-	jobResult := lines[1]
+	jobResult := lines[0]
 	jobResult = jobResult[:len(jobResult)-3]                //Trim Suffix
 	jobResult = jobResult[strings.Index(jobResult, "|")+1:] //Trim Prefix
 	exitCode, _ := strconv.Atoi(jobResult)
