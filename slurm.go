@@ -41,15 +41,14 @@ func (j SlurmJob) New(job *Job) (error, SlurmJob) {
 	execArgs := []string{"-o", outputScriptPath}
 
 	//Handle Native Specs
-	var Specs []string
 	if len(job.NativeSpecs) != 0 {
 		//Defines an array of illegal arguments which will not be passed in as native specifications
 		illegalArguments := []string{"-o", "--output"}
-		j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
-	}
-
-	if len(job.NativeSpecs) != 0 {
-		execArgs = append(execArgs, Specs...)
+		warnings := j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
+		for i, _ := range warnings {
+			job.PrintWarning(warnings[i])
+		}
+		execArgs = append(execArgs, job.NativeSpecs...)
 	}
 
 	files := []string{outputScriptPath}
@@ -60,7 +59,11 @@ func (j SlurmJob) New(job *Job) (error, SlurmJob) {
 
 func (j *SlurmJob) RunJob() (err error, out string) {
 	cmd := j.Job.setUid(append([]string{j.batchCommand}, j.args...))
-	stdOut, err := cmd.Output()
+	fmt.Println(cmd)
+	stdOut, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf(string(stdOut)), ""
+	}
 	j.PrintToParent(string(stdOut))
 	jobid, err := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(string(stdOut), "Submitted batch job "), "\n"))
 	j.jobID = strconv.Itoa(jobid)
