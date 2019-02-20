@@ -61,7 +61,10 @@ func (j CobaltJob) New(job *Job) (error, CobaltJob) {
 	if len(job.NativeSpecs) != 0 {
 		//Defines an array of illegal arguments which will not be passed in as native specifications
 		illegalArguments := []string{"-o", "-e", "--debuglog", " "}
-		j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
+		warnings := j.Job.CheckIllegalParams(job.NativeSpecs, illegalArguments)
+		for i, _ := range warnings {
+			job.PrintWarning(warnings[i])
+		}
 	}
 
 	//If native specs were defined attach them to the end. Assemble bash command
